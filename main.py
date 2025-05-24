@@ -11,6 +11,7 @@ CELL_SIZE = 90
 def generate_board_image():
     # test
     pieces_to_place = [
+        ("checkmate.png", 0, 1),
         ("png_pieces/wK.png", 0, 1),
         ("png_pieces/bN.png", 1, 3),
     ]
