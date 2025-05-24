@@ -13,7 +13,9 @@ def generate_board_image():
     pieces_to_place = [
         ("checkmate.png", 0, 1),
         ("png_pieces/wK.png", 0, 1),
+        ("last_move_indicator.png", 1, 3),
         ("png_pieces/bN.png", 1, 3),
+        ("last_move_indicator.png", 3, 4),
     ]
 
     board_path = os.path.join(ASSETS_FOLDER, BOARD_IMAGE)
