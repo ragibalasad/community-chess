@@ -11,6 +11,7 @@ def main():
 
     if result == "Illegal move.":
         print("That move is illegal!")
+        return
     else:
         print("Move accepted and PGN updated.")
         print("Current FEN after move:", result)
