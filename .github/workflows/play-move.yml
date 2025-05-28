@@ -29,13 +29,14 @@ jobs:
       - name: Extract move from comment
         id: parse
         run: |
-          echo "Comment: $COMMENT_BODY"
-          MOVE=$(echo "$COMMENT_BODY" | grep -iEo '/move\s+[a-h][1-8][a-h][1-8]' | awk '{print $2}')
-          if [[ -z "$MOVE" ]]; then
+            echo "Comment: $COMMENT_BODY"
+            MOVE=$(echo "$COMMENT_BODY" | sed -nE 's|.*\/move\s+([^ ]+).*|\1|p')
+            if [[ -z "$MOVE" ]]; then
             echo "No move found after /move. Exiting."
             exit 1
-          fi
-          echo "move=$MOVE" >> $GITHUB_OUTPUT
+            fi
+            echo "Parsed move: $MOVE"
+            echo "move=$MOVE" >> $GITHUB_OUTPUT
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
 
