@@ -1,9 +1,10 @@
 from utils.pgn_engine import generate_board_image, validate_and_push_move
+import sys
 
 
 def main():
     # Example move input (replace with actual move input)
-    san_move = input("Enter your move in SAN notation (e.g., e4, Nf3): ").strip()
+    san_move = sys.argv[1]
 
     # Validate and push the move in the PGN file
     result = validate_and_push_move(san_move)

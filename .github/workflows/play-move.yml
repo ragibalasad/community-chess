@@ -1,0 +1,54 @@
+name: Community Chess Move Handler
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  handle-move:
+    runs-on: ubuntu-latest
+
+    if: github.event.issue.number == 1  # Replace with your issue number
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Extract move from comment
+        id: parse
+        run: |
+          echo "Full comment: $COMMENT_BODY"
+          MOVE=$(echo "$COMMENT_BODY" | grep -iEo 'move\s+[a-h][1-8][a-h][1-8]' | head -n1 | awk '{print $2}')
+          if [[ -z "$MOVE" ]]; then
+            echo "No valid move found. Exiting."
+            exit 1
+          fi
+          echo "Parsed move: $MOVE"
+          echo "move=$MOVE" >> $GITHUB_OUTPUT
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+
+      - name: Run main.py with the move
+        run: |
+          python3 main.py ${{ steps.parse.outputs.move }}
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git add .
+          git commit -m "♟️ Move played: ${{ steps.parse.outputs.move }}"
+          git push
