@@ -13,7 +13,7 @@ Always up for building something useful — feel free to reach out.
 ![](https://img.shields.io/badge/Completed%20games-925-brightgreen)
 ![](https://img.shields.io/badge/Individual%20players-1893-orange)
 
-Participation is open to everyone! To play a move, comment on [this issue](https://github.com/YOUR_USERNAME/YOUR_REPO/issues/1) like this: `move e4`
+Participation is open to everyone! To play a move, comment on [this issue](https://github.com/YOUR_USERNAME/YOUR_REPO/issues/1) like this: `/move e4`
 
 
 It is team **black**'s turn to play.

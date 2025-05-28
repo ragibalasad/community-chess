@@ -8,7 +8,7 @@ jobs:
   handle-move:
     runs-on: ubuntu-latest
 
-    if: github.event.issue.number == 1  # Replace with your issue number
+    if: contains(github.event.comment.body, '/move')
 
     steps:
       - name: Check out the repository
@@ -21,16 +21,20 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
       - name: Extract move from comment
         id: parse
         run: |
-          echo "Full comment: $COMMENT_BODY"
-          MOVE=$(echo "$COMMENT_BODY" | grep -iEo 'move\s+[a-h][1-8][a-h][1-8]' | head -n1 | awk '{print $2}')
+          echo "Comment: $COMMENT_BODY"
+          MOVE=$(echo "$COMMENT_BODY" | grep -iEo '/move\s+[a-h][1-8][a-h][1-8]' | awk '{print $2}')
           if [[ -z "$MOVE" ]]; then
-            echo "No valid move found. Exiting."
+            echo "No move found after /move. Exiting."
             exit 1
           fi
-          echo "Parsed move: $MOVE"
           echo "move=$MOVE" >> $GITHUB_OUTPUT
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
