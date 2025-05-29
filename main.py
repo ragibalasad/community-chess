@@ -3,20 +3,20 @@ import sys
 import re
 
 
-def update_readme(readme_path="README.md"):
+def update_readme(result):
+    readme_path = "README.md"
     with open(readme_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    sections_to_update = {
-        "turn": turn_to_play(),
-        # You can add more sections here later, like:
-        # "status": get_status_text(),
-        # "moves": get_move_list(),
-    }
+    value = turn_to_play()
+    if result == "ongoing":
+        pattern = rf"(<!-- START:turn -->)(.*?)(<!-- END:turn -->)"
+        replacement = rf"\1 \nIt's team **{value}**'s turn to play \n\3"
+        content = re.sub(pattern, replacement, content, flags=re.DOTALL)
 
-    for key, value in sections_to_update.items():
-        pattern = rf"(<!-- START:{key} -->)(.*?)(<!-- END:{key} -->)"
-        replacement = rf"\1{value}\3"
+    else:
+        pattern = rf"(<!-- START:turn -->)(.*?)(<!-- END:turn -->)"
+        replacement = rf"\1 \nGAME OVER! **{result}** {'won' if result in ['white', 'black'] else ''} \n\3"
         content = re.sub(pattern, replacement, content, flags=re.DOTALL)
 
     with open(readme_path, "w", encoding="utf-8") as f:
@@ -26,10 +26,7 @@ def update_readme(readme_path="README.md"):
 
 
 def main():
-    # Example move input (replace with actual move input)
     san_move = sys.argv[1]
-
-    # Validate and push the move in the PGN file
     result = validate_and_push_move(san_move)
 
     if result == "Illegal move.":
@@ -37,10 +34,15 @@ def main():
         return
     else:
         print("Move accepted and PGN updated.")
-        print("Current FEN after move:", result)
 
     generate_board_image()
-    update_readme()
+    update_readme(result)
+
+    if result != "ongoing":
+        print(f"Game over: {result} {'won' if result in ['white', 'black'] else ''}")
+
+    else:
+        print("Game is still ongoing.")
 
 
 if __name__ == "__main__":

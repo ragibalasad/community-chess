@@ -115,6 +115,21 @@ def generate_board_image():
     print(f"SVG board image saved at: {OUTPUT_IMAGE}")
 
 
+def who_won(board):
+    if board.is_checkmate():
+        return "black" if board.turn == chess.WHITE else "white"
+    elif board.is_stalemate():
+        return "stalemate"
+    elif board.is_insufficient_material():
+        return "draw"
+    elif board.is_seventyfive_moves():
+        return "draw"
+    elif board.is_fivefold_repetition():
+        return "draw"
+    else:
+        return None
+
+
 def validate_and_push_move(move_str):
     board = load_board_from_pgn()
     try:
@@ -128,7 +143,8 @@ def validate_and_push_move(move_str):
     board.push(move)
     save_board_to_pgn(board)
     print("Move made successfully.")
-    return board.fen()
+
+    return who_won(board) or "ongoing"
 
 
 def turn_to_play():
@@ -145,4 +161,5 @@ def turn_to_play():
 
 if __name__ == "__main__":
     generate_board_image()
+    save_board_to_pgn(load_board_from_pgn())
     # Example usage: validate_and_push_move("Kg4")
