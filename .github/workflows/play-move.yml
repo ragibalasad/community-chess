@@ -79,7 +79,7 @@ jobs:
       - name: Run main.py with the move
         if: success()
         run: |
-          python3 main.py "${{ steps.validation.outputs.move }} ${{steps.validation.outputs.current_user }}"
+          python3 main.py "${{ steps.validation.outputs.move }}" "${{steps.validation.outputs.current_user }}"
 
       - name: Commit and push changes
         if: success()
