@@ -1,29 +1,38 @@
 import os
-from PIL import Image
 import chess
 import chess.pgn
-from io import StringIO
+import svgwrite
+import base64
+from pathlib import Path
 
 ASSETS_FOLDER = "assets"
-BOARD_IMAGE = "board.png"
-OUTPUT_IMAGE = os.path.join(ASSETS_FOLDER, "final_board.png")
+PIECES_FOLDER = os.path.join(ASSETS_FOLDER, "svg_pieces")
+OUTPUT_IMAGE = os.path.join(ASSETS_FOLDER, "final_board.svg")
 CELL_SIZE = 90
+BOARD_SIZE = CELL_SIZE * 8
 PGN_PATH = os.path.join("data", "game.pgn")
 
 PIECES = {
-    "K": "wK.png",
-    "Q": "wQ.png",
-    "R": "wR.png",
-    "B": "wB.png",
-    "N": "wN.png",
-    "P": "wP.png",
-    "k": "bK.png",
-    "q": "bQ.png",
-    "r": "bR.png",
-    "b": "bB.png",
-    "n": "bN.png",
-    "p": "bP.png",
+    "K": "wK.svg",
+    "Q": "wQ.svg",
+    "R": "wR.svg",
+    "B": "wB.svg",
+    "N": "wN.svg",
+    "P": "wP.svg",
+    "k": "bK.svg",
+    "q": "bQ.svg",
+    "r": "bR.svg",
+    "b": "bB.svg",
+    "n": "bN.svg",
+    "p": "bP.svg",
 }
+
+
+def image_data_uri(path):
+    """Return data URI of an SVG file"""
+    with open(path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+        return f"data:image/svg+xml;base64,{encoded}"
 
 
 def load_board_from_pgn():
@@ -47,64 +56,63 @@ def save_board_to_pgn(board):
         f.write(str(game))
 
 
+def square_coords(square):
+    file = chess.square_file(square)
+    rank = 7 - chess.square_rank(square)
+    return file * CELL_SIZE, rank * CELL_SIZE
+
+
 def generate_board_image():
     board = load_board_from_pgn()
+    dwg = svgwrite.Drawing(OUTPUT_IMAGE, size=(BOARD_SIZE, BOARD_SIZE))
 
-    board_image_path = os.path.join(ASSETS_FOLDER, BOARD_IMAGE)
-    if not os.path.exists(board_image_path):
-        raise FileNotFoundError(f"Board image not found: {board_image_path}")
-
-    board_image = Image.open(board_image_path).convert("RGBA")
+    # Draw board squares
+    colors = ["#f0d9b5", "#b58863"]
+    for rank in range(8):
+        for file in range(8):
+            x = file * CELL_SIZE
+            y = rank * CELL_SIZE
+            fill = colors[(file + rank) % 2]
+            dwg.add(dwg.rect(insert=(x, y), size=(CELL_SIZE, CELL_SIZE), fill=fill))
 
     # Highlight last move
     if board.move_stack:
         last_move = board.move_stack[-1]
-        last_move_image_path = os.path.join(
-            ASSETS_FOLDER, "png_pieces", "last_move.png"
-        )
-        if os.path.exists(last_move_image_path):
-            last_move_image = Image.open(last_move_image_path).convert("RGBA")
-            last_move_image = last_move_image.resize(
-                (CELL_SIZE, CELL_SIZE), Image.LANCZOS
-            )
-
+        last_move_svg = os.path.join(PIECES_FOLDER, "last_move.svg")
+        if os.path.exists(last_move_svg):
+            data_uri = image_data_uri(last_move_svg)
             for square in [last_move.from_square, last_move.to_square]:
-                x = chess.square_file(square) * CELL_SIZE
-                y = (7 - chess.square_rank(square)) * CELL_SIZE
-                board_image.paste(last_move_image, (x, y), mask=last_move_image)
+                x, y = square_coords(square)
+                dwg.add(
+                    dwg.image(href=data_uri, insert=(x, y), size=(CELL_SIZE, CELL_SIZE))
+                )
 
     # Highlight check
     if board.is_check():
         king_square = board.king(board.turn)
-        check_image_path = os.path.join(ASSETS_FOLDER, "png_pieces", "check.png")
-        if os.path.exists(check_image_path):
-            check_image = Image.open(check_image_path).convert("RGBA")
-            check_image = check_image.resize((CELL_SIZE, CELL_SIZE), Image.LANCZOS)
-
-            x = chess.square_file(king_square) * CELL_SIZE
-            y = (7 - chess.square_rank(king_square)) * CELL_SIZE
-            board_image.paste(check_image, (x, y), mask=check_image)
+        check_svg = os.path.join(PIECES_FOLDER, "check.svg")
+        if os.path.exists(check_svg):
+            data_uri = image_data_uri(check_svg)
+            x, y = square_coords(king_square)
+            dwg.add(
+                dwg.image(href=data_uri, insert=(x, y), size=(CELL_SIZE, CELL_SIZE))
+            )
 
     # Draw pieces
     for square, piece in board.piece_map().items():
-        piece_symbol = piece.symbol()
-        piece_filename = PIECES.get(piece_symbol)
-        if not piece_filename:
-            raise ValueError(f"Unknown piece symbol: {piece_symbol}")
+        symbol = piece.symbol()
+        filename = PIECES.get(symbol)
+        if not filename:
+            raise ValueError(f"Unknown piece symbol: {symbol}")
+        filepath = os.path.join(PIECES_FOLDER, filename)
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"Missing SVG: {filepath}")
+        x, y = square_coords(square)
+        data_uri = image_data_uri(filepath)
+        dwg.add(dwg.image(href=data_uri, insert=(x, y), size=(CELL_SIZE, CELL_SIZE)))
 
-        piece_image_path = os.path.join(ASSETS_FOLDER, "png_pieces", piece_filename)
-        if not os.path.exists(piece_image_path):
-            raise FileNotFoundError(f"Piece image not found: {piece_image_path}")
-
-        piece_image = Image.open(piece_image_path).convert("RGBA")
-        piece_image = piece_image.resize((CELL_SIZE, CELL_SIZE), Image.LANCZOS)
-
-        x = chess.square_file(square) * CELL_SIZE
-        y = (7 - chess.square_rank(square)) * CELL_SIZE
-        board_image.paste(piece_image, (x, y), mask=piece_image)
-
-    board_image.save(OUTPUT_IMAGE)
-    print(f"Board image saved at: {OUTPUT_IMAGE}")
+    dwg.save()
+    print(f"SVG board image saved at: {OUTPUT_IMAGE}")
 
 
 def validate_and_push_move(move_str):
