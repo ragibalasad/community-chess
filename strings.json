@@ -1,12 +1,12 @@
-{   
+{
     "game_no": 0,
     "issue_no": 0,
-    "moves_played": 0,
+    "moves_played": 1,
     "board_state": "ongoing",
     "winner": "",
     "last_move": [
         {
-            "by": "testuser", 
+            "by": "testuser",
             "move": "e4"
         }
     ],
@@ -16,6 +16,7 @@
             "moves": 0,
             "captures": 0,
             "checkmates": 0
-        }
+        },
+        "test2"
     ]
 }

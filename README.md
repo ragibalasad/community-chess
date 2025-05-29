@@ -9,25 +9,30 @@ I'm a software engineer from Bangladesh. I write code in Go, C, and Python, most
 Always up for building something useful — feel free to reach out.
 
 ## ♟️ Join my community Chess game!
-![](https://img.shields.io/badge/Moves%20played-18907-blue)
-![](https://img.shields.io/badge/Completed%20games-925-brightgreen)
-![](https://img.shields.io/badge/Individual%20players-1893-orange)
+<!-- START:badge_moves --> 
+![](https://img.shields.io/badge/Moves%20played-0-blue) 
+<!-- END:badge_moves -->
+<!-- START:badge_games --> 
+![](https://img.shields.io/badge/Completed%20games--1-brightgreen) 
+<!-- END:badge_games --> 
+<!-- START:badge_players --> 
+![](https://img.shields.io/badge/Individual%20players-1-orange) 
+<!-- END:badge_players --> 
 
-Participation is open to everyone! To play a move, comment on [this issue](https://github.com/YOUR_USERNAME/YOUR_REPO/issues/1) like this: `/move e4`
+Participation is open to everyone! To play a move, comment on <!-- START:issue --> 
+[this issue](https://github.com/ragibalasad/ragibalasad/issues/0)<!-- END:issue -->. example: `/move e4`
 
-
-It is team **<!-- START:turn -->black<!-- END:turn -->**'s turn to play.
+<!-- START:turn --> 
+It's team **white**'s turn to play 
+<!-- END:turn --> 
 
 <img src="https://raw.githubusercontent.com/ragibalasad/community-chess/refs/heads/main/assets/final_board.svg" height=480 width=480>
 
 Curious about how it all works? [Explore the details here](https://github.com/ragibalasad/ragibalasad/tree/main/) to see what’s going on under the hood.
 
-**:alarm_clock: Most recent moves**
-| Team | Move | Made by |
-| ---- | ---- | ------- |
-| white | e5 | [@test](https://github.com/) |
-| black | Be4 | [@test](https://github.com/) |
-| white | exg7 | [@test](https://github.com/) |
+<!-- START:last_move --> 
+**:alarm_clock: Most recent move:** `g5` played by [@test2](https://github.com/test2)
+<!-- END:last_move --> 
 
 **:trophy: Community Leaderboard :1st_place_medal:**
 | Player | 🧠 Moves | 🗡️ Captures | 👑 Checkmate |
