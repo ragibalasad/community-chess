@@ -131,6 +131,18 @@ def validate_and_push_move(move_str):
     return board.fen()
 
 
+def turn_to_play():
+    if not os.path.exists(PGN_PATH):
+        return "white"  # If no PGN file exists, it's white's turn by default
+
+    with open(PGN_PATH, "r") as f:
+        game = chess.pgn.read_game(f)
+        board = game.board()
+        for move in game.mainline_moves():
+            board.push(move)
+        return "white" if board.turn == chess.WHITE else "black"
+
+
 if __name__ == "__main__":
     generate_board_image()
     # Example usage: validate_and_push_move("Kg4")
