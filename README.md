@@ -16,7 +16,7 @@ Always up for building something useful — feel free to reach out.
 Participation is open to everyone! To play a move, comment on [this issue](https://github.com/YOUR_USERNAME/YOUR_REPO/issues/1) like this: `/move e4`
 
 
-It is team **<!-- START:turn -->white<!-- END:turn -->**'s turn to play.
+It is team **<!-- START:turn -->black<!-- END:turn -->**'s turn to play.
 
 <img src="https://raw.githubusercontent.com/ragibalasad/community-chess/refs/heads/main/assets/final_board.svg" height=480 width=480>
 
