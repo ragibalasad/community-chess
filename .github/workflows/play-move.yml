@@ -49,6 +49,7 @@ jobs:
 
           echo "Parsed move: $MOVE"
           echo "move=$MOVE" >> $GITHUB_OUTPUT
+          echo "current_user=$CURRENT_USER" >> $GITHUB_OUTPUT
 
           LAST_USER=$(jq -r '.last_move_by' data/data.json)
 
@@ -78,7 +79,7 @@ jobs:
       - name: Run main.py with the move
         if: success()
         run: |
-          python3 main.py "${{ steps.validation.outputs.move }}"
+          python3 main.py "${{ steps.validation.outputs.move }} ${{steps.validation.outputs.current_user }}"
 
       - name: Commit and push changes
         if: success()

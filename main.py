@@ -61,6 +61,10 @@ def update_readme(result, username, san_move):
     last_move_replacement = rf"\1 \n**:alarm_clock: Most recent move:** `{san_move}` played by [@{username}](https://github.com/{username})\n\3"
     content = re.sub(last_move_pattern, last_move_replacement, content, flags=re.DOTALL)
 
+    data["last_move_by"] = username
+    with open("data/data.json", "w") as f:
+        json.dump(data, f, indent=4)
+
     with open(readme_path, "w", encoding="utf-8") as f:
         f.write(content)
 

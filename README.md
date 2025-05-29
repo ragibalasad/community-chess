@@ -10,13 +10,13 @@ Always up for building something useful — feel free to reach out.
 
 ## ♟️ Join my community Chess game!
 <!-- START:badge_moves --> 
-![](https://img.shields.io/badge/Moves%20played-0-blue) 
+![](https://img.shields.io/badge/Moves%20played-1-blue) 
 <!-- END:badge_moves -->
 <!-- START:badge_games --> 
 ![](https://img.shields.io/badge/Completed%20games--1-brightgreen) 
 <!-- END:badge_games --> 
 <!-- START:badge_players --> 
-![](https://img.shields.io/badge/Individual%20players-1-orange) 
+![](https://img.shields.io/badge/Individual%20players-2-orange) 
 <!-- END:badge_players --> 
 
 Participation is open to everyone! To play a move, comment on <!-- START:issue --> 
@@ -31,7 +31,7 @@ It's team **white**'s turn to play
 Curious about how it all works? [Explore the details here](https://github.com/ragibalasad/ragibalasad/tree/main/) to see what’s going on under the hood.
 
 <!-- START:last_move --> 
-**:alarm_clock: Most recent move:** `g5` played by [@test2](https://github.com/test2)
+**:alarm_clock: Most recent move:** `a5` played by [@test2](https://github.com/test2)
 <!-- END:last_move --> 
 
 **:trophy: Community Leaderboard :1st_place_medal:**
