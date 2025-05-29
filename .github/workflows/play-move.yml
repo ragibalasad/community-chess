@@ -93,5 +93,5 @@ jobs:
           fi
 
           git add .
-          git commit -m "♟️ Move played: ${{ steps.validation.outputs.move }}"
+          git commit -m "♟️ `${{ steps.validation.outputs.move }}` played by: ${{ steps.validation.outputs.current_user }}"
           git push
