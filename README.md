@@ -18,7 +18,7 @@ Participation is open to everyone! To play a move, comment on [this issue](https
 
 It is team **<!-- START:turn -->white<!-- END:turn -->**'s turn to play.
 
-<img src="https://raw.githubusercontent.com/ragibalasad/community-chess/main/assets/final_board.svg" height=480 width=480>
+<img src="https://raw.githubusercontent.com/ragibalasad/community-chess/refs/heads/main/assets/final_board.svg" height=480 width=480>
 
 Curious about how it all works? [Explore the details here](https://github.com/ragibalasad/ragibalasad/tree/main/) to see what’s going on under the hood.
 
