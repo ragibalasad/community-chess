@@ -42,17 +42,24 @@ jobs:
             echo "should_exit=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Warn user for consecutive move
+      - name: Warn and exit on duplicate move
         if: steps.extract.outputs.duplicate_user == 'true'
         run: |
           USERNAME="${{ steps.extract.outputs.current_user }}"
           ISSUE_NUMBER="${{ github.event.issue.number }}"
+          
+          echo "Warning @${USERNAME} and stopping workflow due to duplicate move."
 
-          curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"body\": \"👋 Hey @${USERNAME}, you've already made the last move. Please let others take a turn before playing again! 🤝\"}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments"
+          gh api \
+            -X POST \
+            "repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments" \
+            -f body="👋 Hey @${USERNAME}, you've already made the last move. Please let others take a turn before playing again! 🤝"
+
+          exit 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
 
       - name: Exit early if needed
         if: steps.extract.outputs.should_exit == 'true'
