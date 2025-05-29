@@ -1,0 +1,14 @@
+{   
+    "game_no": 0,
+    "issue_no": 0,
+    "winner": "",
+    "last_move_by": "testuser",
+    "players": [
+        {
+            "name": "testuser",
+            "moves": 0,
+            "captures": 0,
+            "checkmates": 0
+        }
+    ]
+}

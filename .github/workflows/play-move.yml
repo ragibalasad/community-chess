@@ -21,47 +21,76 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Cache pip
+      - name: Cache pip dependencies
         uses: actions/cache@v3
         with:
-            path: ~/.cache/pip
-            key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-            restore-keys: |
-                ${{ runner.os }}-pip-
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Extract move from comment
-        id: parse
+      - name: Validate move and prevent duplicate turn
+        id: validation
         run: |
-            echo "Comment: $COMMENT_BODY"
-            MOVE=$(echo "$COMMENT_BODY" | sed -nE 's|.*\/move\s+([^ ]+).*|\1|p')
-            if [[ -z "$MOVE" ]]; then
+          COMMENT="${{ github.event.comment.body }}"
+          CURRENT_USER="${{ github.event.comment.user.login }}"
+
+          MOVE=$(echo "$COMMENT" | sed -nE 's|.*\/move\s+([^ ]+).*|\1|p')
+
+          if [[ -z "$MOVE" ]]; then
             echo "No move found after /move. Exiting."
             exit 1
-            fi
-            echo "Parsed move: $MOVE"
-            echo "move=$MOVE" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Parsed move: $MOVE"
+          echo "move=$MOVE" >> $GITHUB_OUTPUT
+
+          LAST_USER=$(jq -r '.last_move_by' data/data.json)
+
+          echo "Current user: $CURRENT_USER"
+          echo "Last move by: $LAST_USER"
+
+          if [[ "$CURRENT_USER" == "$LAST_USER" ]]; then
+            echo "User attempted consecutive move. Exiting."
+            echo "duplicate_user=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
 
-      - name: Run main.py with the move
+      - name: Warn user for consecutive move
+        if: failure() && steps.validation.outputs.duplicate_user == 'true'
         run: |
-          python3 main.py ${{ steps.parse.outputs.move }}
+          USERNAME="${{ github.event.comment.user.login }}"
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": \"👋 Hey @${USERNAME}, you've already made the last move. Please let others take a turn before playing again! 🤝\"}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments"
+
+      - name: Run main.py with the move
+        if: success()
+        run: |
+          python3 main.py "${{ steps.validation.outputs.move }}"
 
       - name: Commit and push changes
+        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
+
           if git diff --quiet; then
             echo "No changes to commit."
             exit 0
           fi
 
           git add .
-          git commit -m "♟️ Move played: ${{ steps.parse.outputs.move }}"
+          git commit -m "♟️ Move played: ${{ steps.validation.outputs.move }}"
           git push
