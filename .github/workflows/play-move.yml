@@ -16,57 +16,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract move and user
-        id: extract
-        run: |
-          COMMENT="${{ github.event.comment.body }}"
-          CURRENT_USER="${{ github.event.comment.user.login }}"
-          MOVE=$(echo "$COMMENT" | sed -nE 's|.*\/move\s+([^ ]+).*|\1|p')
-
-          if [[ -z "$MOVE" ]]; then
-            echo "No move found after /move. Exiting."
-            echo "should_exit=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "move=$MOVE" >> $GITHUB_OUTPUT
-          echo "current_user=$CURRENT_USER" >> $GITHUB_OUTPUT
-
-          LAST_USER=$(jq -r '.last_move[0].by' data/data.json || echo "")
-
-          if [[ "$CURRENT_USER" == "$LAST_USER" ]]; then
-            echo "duplicate_user=true" >> $GITHUB_OUTPUT
-            echo "should_exit=true" >> $GITHUB_OUTPUT
-          else
-            echo "duplicate_user=false" >> $GITHUB_OUTPUT
-            echo "should_exit=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Warn and exit on duplicate move
-        if: steps.extract.outputs.duplicate_user == 'true'
-        run: |
-          USERNAME="${{ steps.extract.outputs.current_user }}"
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
-          
-          echo "Warning @${USERNAME} and stopping workflow due to duplicate move."
-
-          gh api \
-            -X POST \
-            "repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments" \
-            -f body="👋 Hey @${USERNAME}, you've already made the last move. Please let others take a turn before playing again! 🤝"
-
-          exit 0
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
-      - name: Exit early if needed
-        if: steps.extract.outputs.should_exit == 'true'
-        run: |
-          echo "Exiting early due to duplicate move or invalid format."
-          exit 0
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -85,11 +34,64 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run main.py with the move
+      - name: Validate move and check duplicate turn
+        id: validation
         run: |
-          python3 main.py "${{ steps.extract.outputs.move }}" "${{ steps.extract.outputs.current_user }}"
+          COMMENT="${{ github.event.comment.body }}"
+          CURRENT_USER="${{ github.event.comment.user.login }}"
+          MOVE=$(echo "$COMMENT" | sed -nE 's|.*\/move\s+([^ ]+).*|\1|p')
+
+          if [[ -z "$MOVE" ]]; then
+            echo "No move found after /move. Exiting."
+            echo "should_exit=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Parsed move: $MOVE"
+          echo "move=$MOVE" >> $GITHUB_OUTPUT
+          echo "current_user=$CURRENT_USER" >> $GITHUB_OUTPUT
+
+          LAST_USER=$(jq -r '.last_move[0].by' data/data.json || echo "")
+
+          if [[ "$CURRENT_USER" == "$LAST_USER" ]]; then
+            echo "duplicate_user=true" >> $GITHUB_OUTPUT
+            echo "should_exit=true" >> $GITHUB_OUTPUT
+          else
+            echo "duplicate_user=false" >> $GITHUB_OUTPUT
+            echo "should_exit=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Warn user for consecutive move and exit
+        if: steps.validation.outputs.duplicate_user == 'true'
+        run: |
+          USERNAME="${{ steps.validation.outputs.current_user }}"
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+
+          echo "Posting warning to user $USERNAME on issue $ISSUE_NUMBER"
+
+          gh api \
+            -X POST \
+            repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments \
+            -f body="👋 Hey @${USERNAME}, you've already made the last move. Please let others take a turn before playing again! 🤝"
+
+          echo "Duplicate move detected. Stopping workflow."
+          exit 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Stop workflow if move is invalid
+        if: steps.validation.outputs.should_exit == 'true'
+        run: |
+          echo "Move was invalid or user tried to play twice. Stopping workflow."
+          exit 0
+
+      - name: Run main.py with the move
+        if: steps.validation.outputs.should_exit == 'false'
+        run: |
+          python3 main.py "${{ steps.validation.outputs.move }}" "${{ steps.validation.outputs.current_user }}"
 
       - name: Commit and push changes
+        if: steps.validation.outputs.should_exit == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -100,5 +102,5 @@ jobs:
           fi
 
           git add .
-          git commit -m "♟️ `${{ steps.extract.outputs.move }}` played by: ${{ steps.extract.outputs.current_user }}"
+          git commit -m "♟️ `${{ steps.validation.outputs.move }}` played by: ${{ steps.validation.outputs.current_user }}"
           git push
