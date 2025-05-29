@@ -16,6 +16,50 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract move and user
+        id: extract
+        run: |
+          COMMENT="${{ github.event.comment.body }}"
+          CURRENT_USER="${{ github.event.comment.user.login }}"
+          MOVE=$(echo "$COMMENT" | sed -nE 's|.*\/move\s+([^ ]+).*|\1|p')
+
+          if [[ -z "$MOVE" ]]; then
+            echo "No move found after /move. Exiting."
+            echo "should_exit=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "move=$MOVE" >> $GITHUB_OUTPUT
+          echo "current_user=$CURRENT_USER" >> $GITHUB_OUTPUT
+
+          LAST_USER=$(jq -r '.last_move[0].by' data/data.json || echo "")
+
+          if [[ "$CURRENT_USER" == "$LAST_USER" ]]; then
+            echo "duplicate_user=true" >> $GITHUB_OUTPUT
+            echo "should_exit=true" >> $GITHUB_OUTPUT
+          else
+            echo "duplicate_user=false" >> $GITHUB_OUTPUT
+            echo "should_exit=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Warn user for consecutive move
+        if: steps.extract.outputs.duplicate_user == 'true'
+        run: |
+          USERNAME="${{ steps.extract.outputs.current_user }}"
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": \"👋 Hey @${USERNAME}, you've already made the last move. Please let others take a turn before playing again! 🤝\"}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments"
+
+      - name: Exit early if needed
+        if: steps.extract.outputs.should_exit == 'true'
+        run: |
+          echo "Exiting early due to duplicate move or invalid format."
+          exit 0
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -34,55 +78,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Validate move and prevent duplicate turn
-        id: validation
-        run: |
-          COMMENT="${{ github.event.comment.body }}"
-          CURRENT_USER="${{ github.event.comment.user.login }}"
-
-          MOVE=$(echo "$COMMENT" | sed -nE 's|.*\/move\s+([^ ]+).*|\1|p')
-
-          if [[ -z "$MOVE" ]]; then
-            echo "No move found after /move. Exiting."
-            exit 1
-          fi
-
-          echo "Parsed move: $MOVE"
-          echo "move=$MOVE" >> $GITHUB_OUTPUT
-          echo "current_user=$CURRENT_USER" >> $GITHUB_OUTPUT
-
-          LAST_USER=$(jq -r '.last_move_by' data/data.json)
-
-          echo "Current user: $CURRENT_USER"
-          echo "Last move by: $LAST_USER"
-
-          if [[ "$CURRENT_USER" == "$LAST_USER" ]]; then
-            echo "User attempted consecutive move. Exiting."
-            echo "duplicate_user=true" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-        env:
-          COMMENT_BODY: ${{ github.event.comment.body }}
-
-      - name: Warn user for consecutive move
-        if: failure() && steps.validation.outputs.duplicate_user == 'true'
-        run: |
-          USERNAME="${{ github.event.comment.user.login }}"
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
-
-          curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"body\": \"👋 Hey @${USERNAME}, you've already made the last move. Please let others take a turn before playing again! 🤝\"}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_NUMBER}/comments"
-
       - name: Run main.py with the move
-        if: success()
         run: |
-          python3 main.py "${{ steps.validation.outputs.move }}" "${{steps.validation.outputs.current_user }}"
+          python3 main.py "${{ steps.extract.outputs.move }}" "${{ steps.extract.outputs.current_user }}"
 
       - name: Commit and push changes
-        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -93,5 +93,5 @@ jobs:
           fi
 
           git add .
-          git commit -m "♟️ `${{ steps.validation.outputs.move }}` played by: ${{ steps.validation.outputs.current_user }}"
+          git commit -m "♟️ `${{ steps.extract.outputs.move }}` played by: ${{ steps.extract.outputs.current_user }}"
           git push
