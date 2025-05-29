@@ -51,7 +51,7 @@ jobs:
           echo "move=$MOVE" >> $GITHUB_OUTPUT
           echo "current_user=$CURRENT_USER" >> $GITHUB_OUTPUT
 
-          LAST_USER=$(jq -r '.last_move[0].by' data/data.json || echo "")
+          LAST_USER=$(jq -r '.last_move_by' data/data.json || echo "")
 
           if [[ "$CURRENT_USER" == "$LAST_USER" ]]; then
             echo "duplicate_user=true" >> $GITHUB_OUTPUT
