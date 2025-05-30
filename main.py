@@ -76,8 +76,8 @@ def main():
     san_move = sys.argv[2]
     result = validate_and_push_move(san_move)
 
-    if result == "Illegal move.":
-        print("That move is illegal!")
+    if "Illegal move." in result:
+        print(result)
         return
     else:
         print("Move accepted and PGN updated.")

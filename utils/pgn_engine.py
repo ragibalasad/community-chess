@@ -135,10 +135,14 @@ def validate_and_push_move(move_str):
     try:
         move = board.parse_san(move_str)
     except ValueError:
-        return "Illegal move."
+        return "Illegal move. legal moves are: " + ", ".join(
+            [board.san(m) for m in board.legal_moves]
+        )
 
     if move not in board.legal_moves:
-        return "Illegal move."
+        return "Illegal move. legal moves are: " + ", ".join(
+            [board.san(m) for m in board.legal_moves]
+        )
 
     board.push(move)
     save_board_to_pgn(board)
