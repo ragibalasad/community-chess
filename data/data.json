@@ -1,7 +1,7 @@
 {
     "game_no": 0,
     "issue_no": 0,
-    "moves_played": 2,
+    "moves_played": 3,
     "board_state": "ongoing",
     "winner": "",
     "players": [
@@ -12,7 +12,8 @@
             "checkmates": 0
         },
         "test",
-        "test2"
+        "test2",
+        "ragibalasad"
     ],
-    "last_move_by": "test2"
+    "last_move_by": "ragibalasad"
 }
