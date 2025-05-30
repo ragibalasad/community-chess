@@ -88,7 +88,7 @@ jobs:
       - name: Run main.py with the move
         if: steps.validation.outputs.should_exit == 'false'
         run: |
-          python3 main.py "${{ steps.validation.outputs.current_user }}" "${{ steps.validation.outputs.current_user.move }}"
+          python3 main.py "${{ steps.validation.outputs.current_user }}" "${{ steps.validation.outputs.move }}"
 
       - name: Commit and push changes
         if: steps.validation.outputs.should_exit == 'false'
