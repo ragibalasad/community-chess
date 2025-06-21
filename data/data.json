@@ -1,7 +1,7 @@
 {
     "game_no": 0,
     "issue_no": 0,
-    "moves_played": 4,
+    "moves_played": 5,
     "board_state": "ongoing",
     "winner": "",
     "players": [
@@ -16,5 +16,5 @@
         "ragibalasad",
         "muhammadshihab"
     ],
-    "last_move_by": "muhammadshihab"
+    "last_move_by": "ragibalasad"
 }
